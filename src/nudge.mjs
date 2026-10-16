@@ -61,12 +61,28 @@ export function verifyNudge(derive, before, after) {
   const key = Object.keys(after.record.effects)[0];
   const want = after.record.effects[key];
   const got = before.state[key];
+  const setterNow = before.setters?.[key] ?? null;
+  const valueMatches = JSON.stringify(got) === JSON.stringify(want);
   return {
     key,
     wanted: want,
     got,
-    landed: JSON.stringify(got) === JSON.stringify(want),
-    setterNow: before.setters?.[key] ?? null,
+    // \`landed\` used to mean "the state value equals what I wanted", which is a
+    // claim about the STATE, not about my record. Two reachable false positives:
+    //
+    //   1. A lower-class nudge with the SAME value as the incumbent reads as
+    //      landed while sitting in conflicts[].losers.
+    //   2. A nudge that merely re-asserts the current value is
+    //      indistinguishable from one that flipped it.
+    //
+    // SS5.6 handed over the attributable primitive and this function computed
+    // it on the next line and dropped it. \`landed\` now means the record is the
+    // SETTER -- which is the claim that was actually being made.
+    landed: setterNow === after.record.id,
+    valueMatches,
+    setterNow,
+    inLosers: (before.conflicts || [])
+      .some((c) => c.key === key && (c.losers || []).some((l) => (l.id ?? l) === after.record.id)),
   };
 }
 
