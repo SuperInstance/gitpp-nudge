@@ -115,11 +115,13 @@ The suites are complementary, not competing:
 - Port `derive()`'s `setters` to the other four leaf ports. §5.6 is additive —
   no leaf or closure root changes — so no pinned digest moves, but the other
   ports do not return `setters` yet, so only the Python reference can drive
-  this loop today. The conformance case that would enforce it is drafted and
-  deliberately **not** in the corpus yet: it passed while three ports did not
-  implement the clause, which is the third time a comparison bug produced a
-  green suite in this project. See
-  [`gitpp-fold-conformance/SETTERS-5.6.md`](https://github.com/SuperInstance/gitpp-fold-conformance/blob/main/SETTERS-5.6.md).
+  this loop today. `d26-setter-provenance` now enforces it — **all 5 ports
+  return `setters`; 26/26.** It was withheld for two rounds because it passed
+  *vacuously*: the comparison stripped the setters VALUES, so a port returning
+  the inverted-ancestry result compared equal to a correct one. That was the
+  seventh time a comparison bug produced a green suite here, and it is now
+  caught mechanically by [`negctl`](https://github.com/SuperInstance/negctl),
+  which sabotages a port and requires the suite to fail.
 - Extend the suite to assert the *blind* case against a real `override` nudge,
   which beats ancestry by class and therefore lands regardless of parent. The
   interesting case is same-class, and that is what is tested.
